@@ -24,21 +24,27 @@ st_crs(hydro_node)
 data_sp <- as_Spatial(hydro_node)
 kde.output <- kernelUD(data_sp, h="href", grid = 1000)
 h0 <- kde.output@h$h
-kde.output <- kernelUD(data_sp, h=h0*0.1, grid = 1000)
+kde.output <- kernelUD(data_sp, h=h0*0.3, grid = 1000)
 plot(kde.output)
 kde_trim <- raster(kde.output)
 kde_trim[kde_trim <= 0] <- NA
 
+tmap_mode("view")
 tm_basemap(providers$Esri.WorldTopoMap)+
   tm_shape(kde_trim) +
-  tm_raster(style = "quantile", n = 7, palette = "Reds", alpha = 0.5,
-            legend.format = list(digits = 3, scientific = TRUE),
-            title = "Hydro nodes density") +
-  tm_shape(dc_sf) +
-  tm_dots(size = 0.5, col = "#26b5ed", alpha = 0.7)+
+  # tm_raster(style = "quantile", n = 7, palette = "Reds", alpha = 0.5,
+  #           legend.format = list(digits = 5, scientific = FALSE),
+  #           title = "Hydro nodes density") +
+  tm_raster(style = "cont", palette = "Reds", alpha=0.5,
+            legend.format = list(digits = 3, scientific = TRUE)) +
+  # tm_shape(dc_sf) +
+  # tm_dots(size = 0.2, col = "#26b5ed", alpha = 0.5)+
   # tm_shape(uk_l2) +
   # tm_borders(col = "#731c1c", lwd = 0.5) +
-  tm_layout(legend.outside = TRUE, frame = FALSE)
+  tm_compass(position = c("right","top")) +
+  tm_scale_bar(position = c("right","top")) +
+  tm_layout(legend.outside = TRUE, frame = FALSE, legend.text.size = 0.8)
+
 
 ## Intersection
 water_link <- st_transform(water_link, st_crs(uk_l2))
@@ -52,8 +58,8 @@ city_water <- water_with_city%>%
   st_drop_geometry() %>%
   group_by(shapeName)%>%
   summarise(
-    total_length = sum(length, na.rm = TRUE),
-    avg_length = mean(length, na.rm = TRUE),
+    total_length = sum(length, na.rm = TRUE) / 1000,
+    avg_length = mean(length, na.rm = TRUE) / 1000,
     total_area_km2 = first(area_km2),
     length_unit = total_length / total_area_km2,
     link_count = n(),
@@ -64,6 +70,8 @@ uk_l2_with_water <- uk_l2_with_water%>%
   mutate(
     length_unit = total_length / total_area_km2
   )
+
+dc_sf$Datacenter <- "Data Center"
 
 tm_basemap("CartoDB.Positron") +
   tm_shape(uk_l2_with_water) +
@@ -77,43 +85,27 @@ tm_basemap("CartoDB.Positron") +
     title = "Unit Length (m)"
   ) +
   tm_shape(dc_sf) +
-  tm_dots(size = 0.5, col = "#26b5ed", alpha = 0.7)+
-  tm_shape(uk_l2_with_water %>% filter(length_unit > 1017)) +
-  tm_text(
-    text = "shapeName",
-    size = 0.5,
-    col = "black",
-    shadow = TRUE,
-    remove.overlap = TRUE
-  )
-
-tm_basemap("CartoDB.Positron") +
-  tm_shape(uk_l2_with_water) +
+  tm_dots(size = 0.5, col = "#ad0c37", alpha = 0.3)+
   tm_polygons(
-    col = "total_length",
-    style = "equal",
-    n = 5,
-    palette = "Blues",
-    border.col = "white",
-    lwd = 0.3,
-    title = "Unit Length (m)"
-  ) +
-  tm_shape(dc_sf) +
-  tm_dots(size = 0.5, col = "#26b5ed", alpha = 0.7)+
-  tm_shape(uk_l2_with_water %>% filter(length_unit > 1017)) +
-  tm_text(
-    text = "shapeName",
-    size = 0.5,
-    col = "black",
-    shadow = TRUE,
-    remove.overlap = TRUE
-  )
+    col = "Datacenter",
+    border.col = "#ad0c37",
+  )+
+  tm_shape(uk_l2_with_water %>% filter(length_unit > 1.017)) +
+  # tm_text(
+  #   text = "shapeName",
+  #   size = 1.2,
+  #   col = "black",
+  #   shadow = TRUE,
+  #   remove.overlap = TRUE,
+  # )+
+  tm_compass(position = c("right","top")) +
+  tm_scale_bar(position = c("right","top"))
 
 # correlation plot
 city_water%>%
-  filter(
-    link_count < quantile(link_count, 0.75) + 1.5 * IQR(link_count)
-  )%>%
+  # filter(
+  #   link_count < quantile(link_count, 0.75) + 1.5 * IQR(link_count)
+  # )%>%
   ggplot()+
   geom_point(aes(x=link_count, y=total_length))+
   geom_text(

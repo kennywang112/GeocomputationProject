@@ -49,7 +49,7 @@ get_fields <- function(
 data_sf$dataset%>%unique()
 
 # "brownfield-site" "green-belt"
-type <- "brownfield-site"
+type <- "green-belt"
 
 uk_l2_web <- get_fields(
   data = data_sf,
@@ -107,11 +107,11 @@ tm_basemap("CartoDB.Positron") +
   tm_compass(position = c("right","top")) +
   tm_scale_bar(position = c("right","top")) +
   # add shapeName name one each county
-  # tm_shape(uk_l2_web %>% filter(fields_total > 2.5))+
-  tm_shape(uk_l2_web %>% filter(fields_total > 0))+
+  tm_shape(uk_l2_web %>% filter(fields_total > 12))+
+  # tm_shape(uk_l2_web %>% filter(fields_total > 0))+
   tm_text(
     text = "shapeName",
-    size = 0.5,
+    size = 1.5,
     col = "black",
     shadow = TRUE,
     remove.overlap = TRUE

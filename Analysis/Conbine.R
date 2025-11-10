@@ -23,7 +23,7 @@ uk_l2_combined%>%
     check_overlap = TRUE,
     vjust = -1,
     hjust = 0.4,
-    size = 3
+    size = 4
   )+
   labs(
     title = "Relationship between Number of Fields and Average Length of Watercourse in UK Level 2 Areas",

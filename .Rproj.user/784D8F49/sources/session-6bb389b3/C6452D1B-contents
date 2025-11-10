@@ -32,6 +32,6 @@ kde_trim[kde_trim <= 0] <- NA
 
 tm_basemap(providers$Esri.WorldTopoMap)+
 tm_shape(kde_trim) +
-  tm_raster(style = "quantile", n = 7, palette = "Blues", alpha = 0.5) +
+  tm_raster(style = "quantile", n = 7, palette = "Blues", alpha = 0.5,
+            legend.format = list(digits = 3, scientific = TRUE)) +
   tm_layout(legend.outside = TRUE, frame = FALSE)
-
