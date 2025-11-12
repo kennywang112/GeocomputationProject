@@ -24,7 +24,7 @@ st_crs(hydro_node)
 data_sp <- as_Spatial(hydro_node)
 kde.output <- kernelUD(data_sp, h="href", grid = 1000)
 h0 <- kde.output@h$h
-kde.output <- kernelUD(data_sp, h=h0*0.3, grid = 1000)
+kde.output <- kernelUD(data_sp, h=h0*0.1, grid = 3000)
 plot(kde.output)
 kde_trim <- raster(kde.output)
 kde_trim[kde_trim <= 0] <- NA
@@ -32,18 +32,18 @@ kde_trim[kde_trim <= 0] <- NA
 tmap_mode("view")
 tm_basemap(providers$Esri.WorldTopoMap)+
   tm_shape(kde_trim) +
-  # tm_raster(style = "quantile", n = 7, palette = "Reds", alpha = 0.5,
-  #           legend.format = list(digits = 5, scientific = FALSE),
-  #           title = "Hydro nodes density") +
-  tm_raster(style = "cont", palette = "Reds", alpha=0.5,
-            legend.format = list(digits = 3, scientific = TRUE)) +
+  tm_raster(style = "quantile", n = 20, palette = "Reds", alpha = 0.5) +
+  # tm_raster(style = "cont", palette = "Reds", alpha=0.5,
+  #           legend.format = list(digits = 3, scientific = TRUE),
+  #           title = "Density") +
   # tm_shape(dc_sf) +
   # tm_dots(size = 0.2, col = "#26b5ed", alpha = 0.5)+
   # tm_shape(uk_l2) +
   # tm_borders(col = "#731c1c", lwd = 0.5) +
   tm_compass(position = c("right","top")) +
   tm_scale_bar(position = c("right","top")) +
-  tm_layout(legend.outside = TRUE, frame = FALSE, legend.text.size = 0.8)
+  tm_layout(legend.outside = TRUE, frame = FALSE, legend.text.size = 0.8,
+            legend.show = FALSE)
 
 
 ## Intersection
