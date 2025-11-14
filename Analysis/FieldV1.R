@@ -15,6 +15,7 @@ df_all$prefix%>%unique()
 # plot brownfield$data
 
 data_sf <- st_as_sf(df_all, wkt = "point", crs = 4326)
+data_bng <- st_transform(data_sf, 27700)
 
 pal <- colorFactor(palette = "Set1", domain = data_sf$prefix)
 
@@ -24,6 +25,7 @@ pal <- colorFactor(palette = "Set1", domain = data_sf$prefix)
 #                    popup = ~paste0("<b>", name, "</b><br/>", reference),
 #                    fillColor = ~pal(prefix))
 
+# data_bng <- st_transform(df_all, 27700)
 coords <- st_coordinates(data_bng)
 dat <- st_drop_geometry(data_bng)
 dat$id <- factor(dat$typology)

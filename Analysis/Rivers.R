@@ -73,6 +73,8 @@ uk_l2_with_water <- uk_l2_with_water%>%
 
 dc_sf$Datacenter <- "Data Center"
 
+library(tmap)
+
 tm_basemap("CartoDB.Positron") +
   tm_shape(uk_l2_with_water) +
   tm_polygons(
@@ -99,7 +101,9 @@ tm_basemap("CartoDB.Positron") +
   #   remove.overlap = TRUE,
   # )+
   tm_compass(position = c("right","top")) +
-  tm_scale_bar(position = c("right","top"))
+  tm_scale_bar(position = c("right","top"))+
+  tm_shape(water_link) +
+  tm_lines(col = "blue", lwd = 0.5, alpha = 0.7)
 
 # correlation plot
 city_water%>%
@@ -121,25 +125,6 @@ city_water%>%
     y = "Average Length (m)"
   )
 
-# total_length and unit
-city_water%>%
-  filter(
-    total_length < quantile(total_length, 0.75) + 1.5 * IQR(total_length)
-  )%>%
-  ggplot()+
-  geom_point(aes(x=length_unit, y=total_length))+
-  geom_text(
-    aes(x=length_unit, y=total_length, label=shapeName),
-    check_overlap = TRUE,
-    vjust = 0.5,
-    hjust = -0.1,
-    size = 1
-  )+
-  labs(
-    title = "Total Length vs Unit Length",
-    x = "Unit Length (m/km^2)",
-    y = "Total Length (m)"
-)
 # Water EDA
 water_with_city%>%
   # remove outliers by 1.5*IQR
