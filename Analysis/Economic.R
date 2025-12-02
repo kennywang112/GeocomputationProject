@@ -1,4 +1,5 @@
 ## land value
+library(sf)
 library(readxl)
 library(tidyverse)
 # reed first sheet
@@ -19,7 +20,6 @@ uk_l2 <- gb_adm2("United Kingdom")
 uk_l2
 
 library(osmdata)
-library(sf)
 library(ggplot2)
 
 Industrial
@@ -38,8 +38,6 @@ county_boundary%>%
   ggplot() +
   geom_sf() +
   ggtitle(paste("Boundary of", place_name))
-
-
 
 library(tidyverse)
 library(osmdata)
@@ -145,13 +143,11 @@ plot_lcm_tmap <- function(data, class_ids) {
 plot_lcm_tmap(lcm_data, 1)
 
 ## crime
-
-library(sf)
 library(dplyr)
 library(purrr)
 
 
-data_folder <- "./PData/Individual/2025-09"
+data_folder <- "./PData/Individual/Crime"
 file_list <- list.files(path = data_folder,
                         pattern = "\\.csv$",
                         full.names = TRUE)
@@ -159,6 +155,7 @@ file_list <- list.files(path = data_folder,
 all_data <- file_list %>%
   map(st_read) %>%
   bind_rows()
+write.csv(all_data, file = "./PData/Individual/all_crime_data_2025_09.csv", row.names = FALSE)
 
 all_data$Longitude <- as.numeric(as.character(all_data$Longitude))
 all_data$Latitude  <- as.numeric(as.character(all_data$Latitude))
@@ -169,8 +166,55 @@ crime_data_sf <- st_as_sf(clean_data, coords = c("Longitude", "Latitude"),crs = 
 
 library(leaflet)
 tmap_mode("plot")
+crime_data_sf%>%
+  # filter(Crime.type == 'Drugs')%>%
+tm_shape() +
 tm_basemap(providers$Esri.WorldTopoMap)+
-  tm_shape(crime_data_sf) +
   tm_dots(col = "Crime.type", border.col = NA, alpha = 1, size = 0.1, palette = "Dark2",
           col.legend = tm_legend(title = "Prefix"))
+
+## join
+stock_of_properties <- read_csv('./PData/Individual/Land/SOP_SCAT_LA_rv_500000_plus.csv')
+lsoa_shp <- st_read("./PData/Individual/Local_Authority_Districts_December_2023_Boundaries_UK_BGC_-6607102865052560878/LAD_DEC_2023_UK_BGC.shp")
+stock_of_properties
+full_sop <- stock_of_properties %>%
+  left_join(lsoa_shp, by = c("area_code" = "LAD23CD"))
+
+# feature <- `Computer Centres (Purpose Built)`
+feature <- 'Large Distribution Warehouses'
+filter_sop <- full_sop%>%
+  select(area_name, geometry, value = all_of(feature))%>%
+  filter(!st_is_empty(geometry))%>%
+  st_as_sf()
+filter_sop <- filter_sop %>%
+  mutate(value = case_when(
+    value == '[c]' ~ '0',
+    is.na(value)  ~ '0',
+    TRUE ~ value
+  ))
+filter_sop%>%
+  tm_shape() +
+  tm_basemap(providers$Esri.WorldTopoMap)+
+  tm_polygons(col = 'value', border.col = NA, alpha = 0.7, palette = "YlGnBu")
+
+filter_sop$value%>%unique()
+
+## employment
+employment_data <- read_csv('./PData/Individual/employment.csv')
+area <- st_read('./PData/Regions_December_2019_General_Clipped_Boundaries_EN_2022_-3961744608053840024/Regions_December_2019_General_Clipped_Boundaries_EN.shp')
+map_data <- area %>%
+  left_join(employment_data, by = c("rgn19cd" = "ONS Code"))
+
+tmap_mode("view")
+tm_shape(map_data) +
+  tm_basemap(providers$Esri.WorldTopoMap) +
+  tm_polygons(col = 'Employment Rate (%)',
+              border.col = "white",
+              alpha = 0.7,
+              palette = "YlGnBu",
+              title = "Employment rate (%)")
+
+
+
+
 
